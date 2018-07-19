@@ -1,0 +1,30 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Reflection;
+using System.Web.Mvc;
+
+namespace DuAn1
+{
+    public class Reflector
+    {
+        public static IEnumerable<MethodInfo> GetControllerAndAction()
+        {
+            Assembly asm = Assembly.GetExecutingAssembly();
+            var infors = asm.GetTypes()
+                .Where(type => typeof(Controller).IsAssignableFrom(type))//bộ điều khiển bộ lọc
+                .SelectMany(type => type
+                .GetMethods())
+                .Where(method => method.IsPublic && method.IsDefined(typeof(NonActionAttribute)));
+            return infors;
+        }
+        public static IEnumerable<string> GetActionNames()
+        {
+            var actions = GetControllerAndAction();
+            foreach (var action in actions)
+                if (action.DeclaringType.ToString().Contains("Controllers."))
+                    yield return (action.DeclaringType.FullName + "." + action.Name);
+        }
+    }
+}
